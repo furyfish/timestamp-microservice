@@ -1,33 +1,24 @@
 const express = require('express');
-const moment = require('moment-timezone');
-
 const app = express();
-
-var isStringDate = function(date) {
-  return (new Date(date) !== "Invalid Date") && !isNaN(new Date(date));
-}
-
-var isEpochDate = function(date) {
-  return (new Date(parseInt(date)) !== "Invalid Date") && !isNaN(new Date(parseInt(date)));
-}
-
-app.get('/', (req, res) => {
-  res.send('Hello world!')
-});
 
 app.get("/api/timestamp/", (req, res) => {
   res.json({ unix: Date.now(), utc: Date() });
 });
 
-app.get('/api/timestamp/:time', (req, res) => {
-  let time = req.params.time;
-  console.log(time);
-  if (isStringDate(time)) {
-    res.send({unix:moment(new Date(time)).valueOf(), utc:moment(new Date(time)).format('ddd, D MMM YYYY HH:MM:SS') + ' ' + moment.tz(new Date(time), 'Europe/London').format('z')});
-  } else if (isEpochDate(time)) {
-    res.send({unix:time, utc:moment(new Date(parseInt(time))).format('ddd, D MMM YYYY HH:MM:SS') + ' ' + moment.tz(new Date(parseInt(time)), 'Europe/London').format('z')});
+app.get("/api/timestamp/:date_string", (req, res) => {
+  let dateString = req.params.date_string;
+
+  if (/\d{5,}/.test(dateString)) {
+    dateInt = parseInt(dateString);
+    res.json({ unix: dateString, utc: new Date(dateInt).toUTCString() });
+  }
+
+  let dateObject = new Date(dateString);
+
+  if (dateObject.toString() === "Invalid Date") {
+    res.json({ error: "Invaid Date" });
   } else {
-    res.send({error:"Invalid Date"});
+    res.json({ unix: dateObject.valueOf(), utc: dateObject.toUTCString() });
   }
 });
 
