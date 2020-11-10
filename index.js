@@ -1,5 +1,5 @@
 const express = require('express');
-const moment = require('moment');
+const moment = require('moment-timezone');
 
 const app = express();
 
@@ -15,14 +15,19 @@ app.get('/', (req, res) => {
   res.send('Hello world!')
 });
 
+app.get("/api/timestamp/", (req, res) => {
+  res.json({ unix: Date.now(), utc: Date() });
+});
+
 app.get('/api/timestamp/:time', (req, res) => {
   let time = req.params.time;
+  console.log(time);
   if (isStringDate(time)) {
-    res.send({"unix":parseInt(time), "utc":moment().format('ddd, D MMM')});
+    res.send({unix:moment(new Date(time)).valueOf(), utc:moment(new Date(time)).format('ddd, D MMM YYYY HH:MM:SS') + ' ' + moment.tz(new Date(time), 'Europe/London').format('z')});
   } else if (isEpochDate(time)) {
-    res.send({"unix":parseInt(time), "utc":moment().format('ddd, D MMM')});
+    res.send({unix:time, utc:moment(new Date(parseInt(time))).format('ddd, D MMM YYYY HH:MM:SS') + ' ' + moment.tz(new Date(parseInt(time)), 'Europe/London').format('z')});
   } else {
-    res.send({"error":"Invalid Date"});
+    res.send({error:"Invalid Date"});
   }
 });
 
